@@ -1,0 +1,84 @@
+server:
+  forward-headers-strategy: framework
+
+spring:
+  profiles:
+    active: jpa
+  liquibase:
+    change-log: classpath:db/master.xml
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: admin
+    password: admin
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    generate-ddl: false
+    show-sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: kabaruhin.kirill@gmail.com
+    password: yvbcxipzwdutqenb
+    properties:
+      mail:
+        debug: false
+        transport:
+          protocol: smtp
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  cloud:
+    gateway:
+      routes:
+        - id: user-service-route
+          uri: http://localhost:8080/ui/users
+          predicates:
+            - Path=/users
+springDoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls[0]:
+      name: User Service
+      url: /aggregate/user-service/v3/api-docs
+  api-docs:
+    path: /api-docs
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        register-health-indicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state:
+          seconds: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+  timelimiter:
+    configs:
+      default:
+        timeout-duration:
+          seconds: 3
